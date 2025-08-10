@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Worth Calculator - 工作价值计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        .slogan {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .language-toggle:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .form-section {
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-item input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(45deg, var(--success-color), #059669);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+            display: block;
+            margin: 40px auto;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .results-section {
+            background: var(--light-color);
+            padding: 40px;
+            display: none;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .score-excellent { background: linear-gradient(135deg, #10b981, #059669); }
+        .score-good { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .score-average { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .score-poor { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .recommendations {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .recommendation-item {
+            display: flex;
+            align-items: start;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--light-color);
+            border-radius: 10px;
+        }
+
+        .recommendation-icon {
+            font-size: 1.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .share-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .download-btn {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .feature-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .slogan {
+                font-size: 2rem;
+            }
+            
+            .form-section {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .score-circle {
+                width: 150px;
+                height: 150px;
+                font-size: 2rem;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="language-toggle" onclick="toggleLanguage()">EN/中文</button>
+            <h1 class="slogan" data-zh="这b班上得值不值" data-en="Is This Job Worth It?">这b班上得值不值</h1>
+            <p class="subtitle" data-zh="全面评估你的工作价值，不只看薪资" data-en="Comprehensive job worth evaluation beyond salary">全面评估你的工作价值，不只看薪资</p>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <div class="feature-title" data-zh="全面评估" data-en="Comprehensive">全面评估</div>
+                    <div data-zh="多维度计算" data-en="Multi-factor analysis">多维度计算</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌏</div>
+                    <div class="feature-title" data-zh="PPP转换" data-en="PPP Conversion">PPP转换</div>
+                    <div data-zh="190+国家比较" data-en="190+ countries">190+国家比较</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👩‍🎓</div>
+                    <div class="feature-title" data-zh="个人定制" data-en="Personalized">个人定制</div>
+                    <div data-zh="基于个人情况" data-en="Based on your profile">基于个人情况</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-title" data-zh="详细报告" data-en="Detailed Report">详细报告</div>
+                    <div data-zh="可分享下载" data-en="Shareable & Downloadable">可分享下载</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span>📊</span>
+                    <span data-zh="工作信息" data-en="Job Information">工作信息</span>
+                </h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label data-zh="年薪 (当地货币)" data-en="Annual Salary (Local Currency)">年薪 (当地货币)</label>
+                        <input type="number" id="salary" placeholder="e.g. 100000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="工作国家/地区" data-en="Country/Region">工作国家/地区</label>
+                        <select id="country" required>
+                            <option value="" data-zh="请选择" data-en="Select">请选择</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="每周工作天数" data-en="Working Days per Week">每周工作天数</label>
+                        <input type="number" id="workDays" min="1" max="7" value="5" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="每日工作时长 (小时)" data-en="Daily Working Hours">每日工作时长 (小时)</label>
+                        <input type="number" id="workHours" min="1" max="16" step="0.5" value="8" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="单程通勤时间 (分钟)" data-en="One-way Commute Time (minutes)">单程通勤时间 (分钟)</label>
+                        <input type="number" id="commuteTime" min="0" value="30" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="远程工作选项" data-en="Remote Work Option">远程工作选项</label>
+                        <select id="remoteWork">
+                            <option value="0" data-zh="无远程工作" data-en="No Remote">无远程工作</option>
+                            <option value="2" data-zh="偶尔远程" data-en="Occasional">偶尔远程</option>
+                            <option value="5" data-zh="混合办公" data-en="Hybrid">混合办公</option>
+                            <option value="10" data-zh="完全远程" data-en="Fully Remote">完全远程</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h2 class="section-title">
+                    <span>🏢</span>
+                    <span data-zh="环境因素" data-en="Environment Factors">环境因素</span>
+                </h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label data-zh="工作城市等级" data-en="City Tier">工作城市等级</label>
+                        <select id="cityTier">
+                            <option value="1.2" data-zh="一线城市" data-en="Tier 1">一线城市</option>
+                            <option value="1.0" data-zh="二线城市" data-en="Tier 2">二线城市</option>
+                            <option value="0.8" data-zh="三线城市" data-en="Tier 3">三线城市</option>
+                            <option value="0.6" data-zh="四线及以下" data-en="Tier 4+">四线及以下</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="办公环境" data-en="Office Environment">办公环境</label>
+                        <select id="officeEnvironment">
+                            <option value="1.2" data-zh="优秀" data-en="Excellent">优秀</option>
+                            <option value="1.0" data-zh="良好" data-en="Good">良好</option>
+                            <option value="0.8" data-zh="一般" data-en="Average">一般</option>
+                            <option value="0.6" data-zh="较差" data-en="Poor">较差</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="团队关系" data-en="Team Relationship">团队关系</label>
+                        <select id="teamRelationship">
+                            <option value="1.2" data-zh="非常好" data-en="Excellent">非常好</option>
+                            <option value="1.0" data-zh="良好" data-en="Good">良好</option>
+                            <option value="0.8" data-zh="一般" data-en="Average">一般</option>
+                            <option value="0.6" data-zh="较差" data-en="Poor">较差</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="工作压力" data-en="Work Pressure">工作压力</label>
+                        <select id="workPressure">
+                            <option value="1.2" data-zh="压力小" data-en="Low">压力小</option>
+                            <option value="1.0" data-zh="适中" data-en="Moderate">适中</option>
+                            <option value="0.8" data-zh="较大" data-en="High">较大</option>
+                            <option value="0.6" data-zh="很大" data-en="Very High">很大</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h2 class="section-title">
+                    <span>👤</span>
+                    <span data-zh="个人信息" data-en="Personal Information">个人信息</span>
+                </h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label data-zh="最高学历" data-en="Education Level">最高学历</label>
+                        <select id="education">
+                            <option value="1.5" data-zh="博士及以上" data-en="PhD+">博士及以上</option>
+                            <option value="1.3" data-zh="硕士" data-en="Master's">硕士</option>
+                            <option value="1.1" data-zh="本科" data-en="Bachelor's">本科</option>
+                            <option value="0.9" data-zh="大专" data-en="Associate">大专</option>
+                            <option value="0.7" data-zh="高中及以下" data-en="High School-">高中及以下</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="工作经验 (年)" data-en="Work Experience (years)">工作经验 (年)</label>
+                        <input type="number" id="experience" min="0" value="3" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label data-zh="行业前景" data-en="Industry Outlook">行业前景</label>
+                        <select id="industryOutlook">
+                            <option value="1.3" data-zh="朝阳行业" data-en="Growing">朝阳行业</option>
+                            <option value="1.1" data-zh="稳定行业" data-en="Stable">稳定行业</option>
+                            <option value="0.9" data-zh="传统行业" data-en="Traditional">传统行业</option>
+                            <option value="0.7" data-zh="衰退行业" data-en="Declining">衰退行业</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculateJobWorth()">
+                    <span data-zh="计算工作价值" data-en="Calculate Job Worth">计算工作价值</span>
+                </button>
+            </section>
+
+            <section class="results-section" id="results">
+                <div class="score-display">
+                    <div class="score-circle" id="scoreCircle">
+                        <span id="scoreValue">0</span>
+                    </div>
+                    <h3 id="scoreTitle" data-zh="工作性价比分数" data-en="Job Worth Score">工作性价比分数</h3>
+                    <p id="scoreDescription"></p>
+                </div>
+
+                <div class="recommendations">
+                    <h3 class="section-title">
+                        <span>💡</span>
+                        <span data-zh="分析与建议" data-en="Analysis & Recommendations">分析与建议</span>
+                    </h3>
+                    <div id="recommendationsList"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn share-btn" onclick="shareResults()">
+                        <span>📤</span>
+                        <span data-zh="分享结果" data-en="Share Results">分享结果</span>
+                    </button>
+                    <button class="action-btn download-btn" onclick="downloadReport()">
+                        <span>📥</span>
+                        <span data-zh="下载报告" data-en="Download Report">下载报告</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // PPP 数据 (购买力平价)
+        const pppData = {
+            'US': 1.0, 'CN': 0.37, 'JP': 0.84, 'DE': 0.89, 'UK': 0.87, 'FR': 0.88,
+            'IT': 0.85, 'CA': 0.92, 'AU': 0.96, 'KR': 0.74, 'IN': 0.25, 'BR': 0.43,
+            'RU': 0.42, 'MX': 0.41, 'ES': 0.83, 'NL': 0.93, 'CH': 1.18, 'SE': 1.01,
+            'NO': 1.12, 'DK': 1.04, 'FI': 0.95, 'BE': 0.91, 'AT': 0.92, 'IE': 0.95,
+            'PT': 0.76, 'GR': 0.73, 'PL': 0.58, 'CZ': 0.69, 'HU': 0.60, 'RO': 0.52,
+            'BG': 0.48, 'HR': 0.60, 'SK': 0.67, 'SI': 0.72, 'LT': 0.59, 'LV': 0.56,
+            'EE': 0.62, 'CY': 0.84, 'MT': 0.86, 'LU': 1.15, 'IS': 1.10, 'AL': 0.36,
+            'BA': 0.38, 'MK': 0.39, 'ME': 0.45, 'RS': 0.43, 'TR': 0.47, 'IL': 0.88,
+            'SA': 0.85, 'AE': 1.05, 'QA': 1.14, 'KW': 1.08, 'OM': 0.88, 'BH': 0.82,
+            'EG': 0.23, 'ZA': 0.38, 'NG': 0.20, 'KE': 0.28, 'GH': 0.27, 'TN': 0.35,
+            'MA': 0.32, 'DZ': 0.29, 'LY': 0.42, 'SD': 0.22, 'ET': 0.21, 'UG': 0.21,
+            'TZ': 0.20, 'ZW': 0.18, 'ZM': 0.19, 'MW': 0.17, 'MZ': 0.18, 'AO': 0.19,
+            'CM': 0.22, 'CI': 0.23, 'SN': 0.21, 'BF': 0.16, 'ML': 0.17, 'NE': 0.15,
+            'TD': 0.16, 'CF': 0.14, 'CG': 0.19, 'GA': 0.35, 'GQ': 0.47, 'CD': 0.16,
+            'RW': 0.21, 'BI': 0.15, 'DJ': 0.25, 'SO': 0.17, 'ER': 0.18, 'SS': 0.15,
+            'GM': 0.18, 'GN': 0.16, 'SL': 0.15, 'LR': 0.17, 'BJ': 0.19, 'TG': 0.20,
+            'LS': 0.27, 'SZ': 0.33, 'NA': 0.36, 'BW': 0.42, 'MU': 0.55, 'SC': 0.76,
+            'KM': 0.20, 'MG': 0.17, 'YT': 0.33, 'RE': 0.88, 'PM': 0.95, 'GF': 0.88,
+            'MQ': 0.86, 'GP': 0.87, 'BL': 0.88, 'MF': 0.88, 'LC': 0.82, 'VC': 0.78,
+            'GD': 0.82, 'BB': 0.75, 'AG': 0.76, 'DM': 0.74, 'KN': 0.76, 'TT': 0.58,
+            'JM': 0.36, 'HT': 0.16, 'DO': 0.38, 'CU': 0.28, 'PR': 0.88, 'VI': 0.88,
+            'KY': 1.05, 'BM': 1.12, 'VG': 1.08, 'AI': 1.15, 'MS': 1.10, 'TC': 1.08,
+            'SH': 0.95, 'FK': 0.95, 'GS': 0.95, 'AQ': 1.00, 'UM': 1.00, 'SJ': 1.05,
+            'AX': 0.95, 'FO': 0.95, 'GL': 0.88, 'PS': 0.35, 'EH': 0.32, 'AS': 0.88,
+            'GU': 0.88, 'MP': 0.88, 'PW': 0.45, 'FM': 0.38, 'MH': 0.35, 'KI': 0.32,
+            'TV': 0.30, 'NR': 0.35, 'TO': 0.38, 'WS': 0.35, 'FJ': 0.42, 'VU': 0.32,
+            'SB': 0.28, 'CK': 0.65, 'NU': 0.55, 'TK': 0.45, 'WF': 0.75, 'PF': 0.82,
+            'NC': 0.75, 'PN': 0.65, 'KY': 1.05, 'BM': 1.12, 'VG': 1.08, 'AI': 1.15,
+            'MS': 1.10, 'TC': 1.08, 'SH': 0.95, 'FK': 0.95, 'GS': 0.95, 'AQ': 1.00,
+            'UM': 1.00, 'SJ': 1.05, 'AX': 0.95, 'FO': 0.95, 'GL': 0.88, 'PS': 0.35,
+            'EH': 0.32, 'AS': 0.88, 'GU': 0.88, 'MP': 0.88, 'PW': 0.45, 'FM': 0.38,
+            'MH': 0.35, 'KI': 0.32, 'TV': 0.30, 'NR': 0.35, 'TO': 0.38, 'WS': 0.35,
+            'FJ': 0.42, 'VU': 0.32, 'SB': 0.28, 'CK': 0.65, 'NU': 0.55, 'TK': 0.45,
+            'WF': 0.75, 'PF': 0.82, 'NC': 0.75, 'PN': 0.65
+        };
+
+        // 国家数据
+        const countries = {
+            'US': { zh: '美国', en: 'United States' },
+            'CN': { zh: '中国', en: 'China' },
+            'JP': { zh: '日本', en: 'Japan' },
+            'DE': { zh: '德国', en: 'Germany' },
+            'UK': { zh: '英国', en: 'United Kingdom' },
+            'FR': { zh: '法国', en: 'France' },
+            'IT': { zh: '意大利', en: 'Italy' },
+            'CA': { zh: '加拿大', en: 'Canada' },
+            'AU': { zh: '澳大利亚', en: 'Australia' },
+            'KR': { zh: '韩国', en: 'South Korea' },
+            'IN': { zh: '印度', en: 'India' },
+            'BR': { zh: '巴西', en: 'Brazil' },
+            'RU': { zh: '俄罗斯', en: 'Russia' },
+            'MX': { zh: '墨西哥', en: 'Mexico' },
+            'ES': { zh: '西班牙', en: 'Spain' },
+            'NL': { zh: '荷兰', en: 'Netherlands' },
+            'CH': { zh: '瑞士', en: 'Switzerland' },
+            'SE': { zh: '瑞典', en: 'Sweden' },
+            'NO': { zh: '挪威', en: 'Norway' },
+            'DK': { zh: '丹麦', en: 'Denmark' },
+            'FI': { zh: '芬兰', en: 'Finland' },
+            'BE': { zh: '比利时', en: 'Belgium' },
+            'AT': { zh: '奥地利', en: 'Austria' },
+            'IE': { zh: '爱尔兰', en: 'Ireland' },
+            'PT': { zh: '葡萄牙', en: 'Portugal' },
+            'GR': { zh: '希腊', en: 'Greece' },
+            'PL': { zh: '波兰', en: 'Poland' },
+            'CZ': { zh: '捷克', en: 'Czech Republic' },
+            'HU': { zh: '匈牙利', en: 'Hungary' },
+            'RO': { zh: '罗马尼亚', en: 'Romania' },
+            'BG': { zh: '保加利亚', en: 'Bulgaria' },
+            'HR': { zh: '克罗地亚', en: 'Croatia' },
+            'SK': { zh: '斯洛伐克', en: 'Slovakia' },
+            'SI': { zh: '斯洛文尼亚', en: 'Slovenia' },
+            'LT': { zh: '立陶宛', en: 'Lithuania' },
+            'LV': { zh: '拉脱维亚', en: 'Latvia' },
+            'EE': { zh: '爱沙尼亚', en: 'Estonia' },
+            'CY': { zh: '塞浦路斯', en: 'Cyprus' },
+            'MT': { zh: '马耳他', en: 'Malta' },
+            'LU': { zh: '卢森堡', en: 'Luxembourg' },
+            'IS': { zh: '冰岛', en: 'Iceland' },
+            'AL': { zh: '阿尔巴尼亚', en: 'Albania' },
+            'BA': { zh: '波斯尼亚和黑塞哥维那', en: 'Bosnia and Herzegovina' },
+            'MK': { zh: '北马其顿', en: 'North Macedonia' },
+            'ME': { zh: '黑山', en: 'Montenegro' },
+            'RS': { zh: '塞尔维亚', en: 'Serbia' },
+            'TR': { zh: '土耳其', en: 'Turkey' },
+            'IL': { zh: '以色列', en: 'Israel' },
+            'SA': { zh: '沙特阿拉伯', en: 'Saudi Arabia' },
+            'AE': { zh: '阿联酋', en: 'United Arab Emirates' },
+            'QA': { zh: '卡塔尔', en: 'Qatar' },
+            'KW': { zh: '科威特', en: 'Kuwait' },
+            'OM': { zh: '阿曼', en: 'Oman' },
+            'BH': { zh: '巴林', en: 'Bahrain' },
+            'EG': { zh: '埃及', en: 'Egypt' },
+            'ZA': { zh: '南非', en: 'South Africa' },
+            'NG': { zh: '尼日利亚', en: 'Nigeria' },
+            'KE': { zh: '肯尼亚', en: 'Kenya' },
+            'GH': { zh: '加纳', en: 'Ghana' },
+            'TN': { zh: '突尼斯', en: 'Tunisia' },
+            'MA': { zh: '摩洛哥', en: 'Morocco' },
+            'DZ': { zh: '阿尔及利亚', en: 'Algeria' },
+            'LY': { zh: '利比亚', en: 'Libya' },
+            'SD': { zh: '苏丹', en: 'Sudan' },
+            'ET': { zh: '埃塞俄比亚', en: 'Ethiopia' },
+            'UG': { zh: '乌干达', en: 'Uganda' },
+            'TZ': { zh: '坦桑尼亚', en: 'Tanzania' },
+            'ZW': { zh: '津巴布韦', en: 'Zimbabwe' },
+            'ZM': { zh: '赞比亚', en: 'Zambia' },
+            'MW': { zh: '马拉维', en: 'Malawi' },
+            'MZ': { zh: '莫桑比克', en: 'Mozambique' },
+            'AO': { zh: '安哥拉', en: 'Angola' },
+            'CM': { zh: '喀麦隆', en: 'Cameroon' },
+            'CI': { zh: '科特迪瓦', en: 'Ivory Coast' },
+            'SN': { zh: '塞内加尔', en: 'Senegal' },
+            'BF': { zh: '布基纳法索', en: 'Burkina Faso' },
+            'ML': { zh: '马里', en: 'Mali' },
+            'NE': { zh: '尼日尔', en: 'Niger' },
+            'TD': { zh: '乍得', en: 'Chad' },
+            'CF': { zh: '中非', en: 'Central African Republic' },
+            'CG': { zh: '刚果共和国', en: 'Republic of the Congo' },
+            'GA': { zh: '加蓬', en: 'Gabon' },
+            'GQ': { zh: '赤道几内亚', en: 'Equatorial Guinea' },
+            'CD': { zh: '刚果民主共和国', en: 'Democratic Republic of the Congo' },
+            'RW': { zh: '卢旺达', en: 'Rwanda' },
+            'BI': { zh: '布隆迪', en: 'Burundi' },
+            'DJ': { zh: '吉布提', en: 'Djibouti' },
+            'SO': { zh: '索马里', en: 'Somalia' },
+            'ER': { zh: '厄立特里亚', en: 'Eritrea' },
+            'SS': { zh: '南苏丹', en: 'South Sudan' },
+            'GM': { zh: '冈比亚', en: 'Gambia' },
+            'GN': { zh: '几内亚', en: 'Guinea' },
+            'SL': { zh: '塞拉利昂', en: 'Sierra Leone' },
+            'LR': { zh: '利比里亚', en: 'Liberia' },
+            'BJ': { zh: '贝宁', en: 'Benin' },
+            'TG': { zh: '多哥', en: 'Togo' },
+            'LS': { zh: '莱索托', en: 'Lesotho' },
+            'SZ': { zh: '斯威士兰', en: 'Eswatini' },
+            'NA': { zh: '纳米比亚', en: 'Namibia' },
+            'BW': { zh: '博茨瓦纳', en: 'Botswana' },
+            'MU': { zh: '毛里求斯', en: 'Mauritius' },
+            'SC': { zh: '塞舌尔', en: 'Seychelles' },
+            'KM': { zh: '科摩罗', en: 'Comoros' },
+            'MG': { zh: '马达加斯加', en: 'Madagascar' },
+            'YT': { zh: '马约特', en: 'Mayotte' },
+            'RE': { zh: '留尼汪', en: 'Réunion' },
+            'PM': { zh: '圣皮埃尔和密克隆', en: 'Saint Pierre and Miquelon' },
+            'GF': { zh: '法属圭亚那', en: 'French Guiana' },
+            'MQ': { zh: '马提尼克', en: 'Martinique' },
+            'GP': { zh: '瓜德罗普', en: 'Guadeloupe' },
+            'BL': { zh: '圣巴泰勒米', en: 'Saint Barthélemy' },
+            'MF': { zh: '法属圣马丁', en: 'Saint Martin' },
+            'LC': { zh: '圣卢西亚', en: 'Saint Lucia' },
+            'VC': { zh: '圣文森特和格林纳丁斯', en: 'Saint Vincent and the Grenadines' },
+            'GD': { zh: '格林纳达', en: 'Grenada' },
+            'BB': { zh: '巴巴多斯', en: 'Barbados' },
+            'AG': { zh: '安提瓜和巴布达', en: 'Antigua and Barbuda' },
+            'DM': { zh: '多米尼克', en: 'Dominica' },
+            'KN': { zh: '圣基茨和尼维斯', en: 'Saint Kitts and Nevis' },
+            'TT': { zh: '特立尼达和多巴哥', en: 'Trinidad and Tobago' },
+            'JM': { zh: '牙买加', en: 'Jamaica' },
+            'HT': { zh: '海地', en: 'Haiti' },
+            'DO': { zh: '多米尼加', en: 'Dominican Republic' },
+            'CU': { zh: '古巴', en: 'Cuba' },
+            'PR': { zh: '波多黎各', en: 'Puerto Rico' },
+            'VI': { zh: '美属维尔京群岛', en: 'U.S. Virgin Islands' },
+            'KY': { zh: '开曼群岛', en: 'Cayman Islands' },
+            'BM': { zh: '百慕大', en: 'Bermuda' },
+            'VG': { zh: '英属维尔京群岛', en: 'British Virgin Islands' },
+            'AI': { zh: '安圭拉', en: 'Anguilla' },
+            'MS': { zh: '蒙特塞拉特', en: 'Montserrat' },
+            'TC': { zh: '特克斯和凯科斯群岛', en: 'Turks and Caicos Islands' },
+            'SH': { zh: '圣赫勒拿', en: 'Saint Helena' },
+            'FK': { zh: '福克兰群岛', en: 'Falkland Islands' },
+            'GS': { zh: '南乔治亚和南桑威奇群岛', en: 'South Georgia and the South Sandwich Islands' },
+            'AQ': { zh: '南极洲', en: 'Antarctica' },
+            'UM': { zh: '美国本土外小岛屿', en: 'United States Minor Outlying Islands' },
+            'SJ': { zh: '斯瓦尔巴群岛和扬马延岛', en: 'Svalbard and Jan Mayen' },
+            'AX': { zh: '奥兰群岛', en: 'Åland Islands' },
+            'FO': { zh: '法罗群岛', en: 'Faroe Islands' },
+            'GL': { zh: '格陵兰', en: 'Greenland' },
+            'PS': { zh: '巴勒斯坦', en: 'Palestine' },
+            'EH': { zh: '西撒哈拉', en: 'Western Sahara' },
+            'AS': { zh: '美属萨摩亚', en: 'American Samoa' },
+            'GU': { zh: '关岛', en: 'Guam' },
+            'MP': { zh: '北马里亚纳群岛', en: 'Northern Mariana Islands' },
+            'PW': { zh: '帕劳', en: 'Palau' },
+            'FM': { zh: '密克罗尼西亚', en: 'Micronesia' },
+            'MH': { zh: '马绍尔群岛', en: 'Marshall Islands' },
+            'KI': { zh: '基里巴斯', en: 'Kiribati' },
+            'TV': { zh: '图瓦卢', en: 'Tuvalu' },
+            'NR': { zh: '瑙鲁', en: 'Nauru' },
+            'TO': { zh: '汤加', en: 'Tonga' },
+            'WS': { zh: '萨摩亚', en: 'Samoa' },
+            'FJ': { zh: '斐济', en: 'Fiji' },
+            'VU': { zh: '瓦努阿图', en: 'Vanuatu' },
+            'SB': { zh: '所罗门群岛', en: 'Solomon Islands' },
+            'CK': { zh: '库克群岛', en: 'Cook Islands' },
+            'NU': { zh: '纽埃', en: 'Niue' },
+            'TK': { zh: '托克劳', en: 'Tokelau' },
+            'WF': { zh: '瓦利斯和富图纳', en: 'Wallis and Futuna' },
+            'PF': { zh: '法属波利尼西亚', en: 'French Polynesia' },
+            'NC': { zh: '新喀里多尼亚', en: 'New Caledonia' },
+            'PN': { zh: '皮特凯恩群岛', en: 'Pitcairn Islands' }
+        };
+
+        let currentLanguage = 'zh';
+
+        // 初始化页面
+        function initializePage() {
+            populateCountries();
+            updateLanguage();
+        }
+
+        // 填充国家选项
+        function populateCountries() {
+            const countrySelect = document.getElementById('country');
+            Object.entries(countries).forEach(([code, name]) => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = currentLanguage === 'zh' ? name.zh : name.en;
+                countrySelect.appendChild(option);
+            });
+        }
+
+        // 切换语言
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
+            updateLanguage();
+            populateCountries();
+        }
+
+        // 更新语言
+        function updateLanguage() {
+            document.querySelectorAll('[data-zh][data-en]').forEach(element => {
+                element.textContent = element.getAttribute(`data-${currentLanguage}`);
+            });
+        }
+
+        // 计算工作价值
+        function calculateJobWorth() {
+            // 获取输入值
+            const salary = parseFloat(document.getElementById('salary').value);
+            const country = document.getElementById('country').value;
+            const workDays = parseInt(document.getElementById('workDays').value);
+            const workHours = parseFloat(document.getElementById('workHours').value);
+            const commuteTime = parseInt(document.getElementById('commuteTime').value);
+            const remoteWork = parseFloat(document.getElementById('remoteWork').value);
+            const cityTier = parseFloat(document.getElementById('cityTier').value);
+            const officeEnvironment = parseFloat(document.getElementById('officeEnvironment').value);
+            const teamRelationship = parseFloat(document.getElementById('teamRelationship').value);
+            const workPressure = parseFloat(document.getElementById('workPressure').value);
+            const education = parseFloat(document.getElementById('education').value);
+            const experience = parseInt(document.getElementById('experience').value);
+            const industryOutlook = parseFloat(document.getElementById('industryOutlook').value);
+
+            // 验证输入
+            if (!salary || !country || !workDays || !workHours) {
+                alert(currentLanguage === 'zh' ? '请填写所有必填项' : 'Please fill in all required fields');
+                return;
+            }
+
+            // 计算基础分数
+            const ppp = pppData[country] || 1.0;
+            const adjustedSalary = salary * ppp;
+            
+            // 计算时薪（考虑通勤时间）
+            const totalWeeklyHours = workDays * workHours + (workDays * commuteTime / 60);
+            const weeklySalary = adjustedSalary / 52;
+            const hourlyRate = weeklySalary / totalWeeklyHours;
+            
+            // 工作生活平衡分数
+            const workLifeBalance = calculateWorkLifeBalance(workHours, commuteTime, remoteWork);
+            
+            // 环境因素分数
+            const environmentScore = (cityTier + officeEnvironment + teamRelationship + workPressure) / 4;
+            
+            // 经验调整因子
+            const experienceFactor = calculateExperienceFactor(experience);
+            
+            // 最终分数计算
+            let finalScore = (hourlyRate / 20) * 100; // 基础分数以$20/小时为基准
+            finalScore *= workLifeBalance;
+            finalScore *= environmentScore;
+            finalScore *= education;
+            finalScore *= experienceFactor;
+            finalScore *= industryOutlook;
+            
+            // 限制分数范围
+            finalScore = Math.max(0, Math.min(100, finalScore));
+            
+            // 显示结果
+            displayResults(finalScore, {
+                hourlyRate: hourlyRate,
+                adjustedSalary: adjustedSalary,
+                workLifeBalance: workLifeBalance,
+                environmentScore: environmentScore,
+                experienceFactor: experienceFactor
+            });
+        }
+
+        // 计算工作生活平衡分数
+        function calculateWorkLifeBalance(workHours, commuteTime, remoteWork) {
+            let score = 1.0;
+            
+            // 工作时长影响
+            if (workHours <= 7) score *= 1.2;
+            else if (workHours <= 8) score *= 1.0;
+            else if (workHours <= 9) score *= 0.9;
+            else if (workHours <= 10) score *= 0.8;
+            else score *= 0.7;
+            
+            // 通勤时间影响
+            if (commuteTime <= 15) score *= 1.1;
+            else if (commuteTime <= 30) score *= 1.0;
+            else if (commuteTime <= 45) score *= 0.9;
+            else if (commuteTime <= 60) score *= 0.8;
+            else score *= 0.7;
+            
+            // 远程工作加分
+            score *= (1 + remoteWork / 100);
+            
+            return Math.min(score, 1.5);
+        }
+
+        // 计算经验因子
+        function calculateExperienceFactor(experience) {
+            if (experience < 1) return 0.8;
+            else if (experience < 3) return 0.9;
+            else if (experience < 5) return 1.0;
+            else if (experience < 10) return 1.1;
+            else if (experience < 15) return 1.2;
+            else return 1.3;
+        }
+
+        // 显示结果
+        function displayResults(score, details) {
+            const resultsSection = document.getElementById('results');
+            const scoreCircle = document.getElementById('scoreCircle');
+            const scoreValue = document.getElementById('scoreValue');
+            const scoreDescription = document.getElementById('scoreDescription');
+            const recommendationsList = document.getElementById('recommendationsList');
+            
+            // 更新分数显示
+            scoreValue.textContent = Math.round(score);
+            
+            // 设置分数样式和描述
+            scoreCircle.className = 'score-circle';
+            let description = '';
+            let recommendations = [];
+            
+            if (score >= 80) {
+                scoreCircle.classList.add('score-excellent');
+                description = currentLanguage === 'zh' ? '优秀！这是一份非常有价值的工作' : 'Excellent! This is a very valuable job';
+                recommendations = [
+                    { icon: '🎉', text: currentLanguage === 'zh' ? '恭喜你找到了一份理想的工作！' : 'Congratulations on finding an ideal job!' },
+                    { icon: '💡', text: currentLanguage === 'zh' ? '继续保持工作生活平衡，享受你的职业生涯' : 'Maintain work-life balance and enjoy your career' },
+                    { icon: '📈', text: currentLanguage === 'zh' ? '考虑长期发展规划，争取更多成长机会' : 'Consider long-term career development for more growth opportunities' }
+                ];
+            } else if (score >= 60) {
+                scoreCircle.classList.add('score-good');
+                description = currentLanguage === 'zh' ? '良好，这份工作有一定价值' : 'Good, this job has decent value';
+                recommendations = [
+                    { icon: '👍', text: currentLanguage === 'zh' ? '这是一份不错的工作，有一定发展空间' : 'This is a decent job with room for growth' },
+                    { icon: '🎯', text: currentLanguage === 'zh' ? '可以尝试争取加薪或更好的福利' : 'Consider negotiating for a raise or better benefits' },
+                    { icon: '⚖️', text: currentLanguage === 'zh' ? '关注工作压力，保持健康的工作节奏' : 'Pay attention to work pressure and maintain a healthy pace' }
+                ];
+            } else if (score >= 40) {
+                scoreCircle.classList.add('score-average');
+                description = currentLanguage === 'zh' ? '一般，工作价值有待提升' : 'Average, job value needs improvement';
+                recommendations = [
+                    { icon: '🤔', text: currentLanguage === 'zh' ? '这份工作的性价比一般，建议考虑其他机会' : 'This job has average value, consider other opportunities' },
+                    { icon: '💰', text: currentLanguage === 'zh' ? '可以尝试争取更高的薪资或更好的工作条件' : 'Try to negotiate for higher salary or better working conditions' },
+                    { icon: '🔍', text: currentLanguage === 'zh' ? '积极寻找新的职业机会' : 'Actively search for new career opportunities' }
+                ];
+            } else {
+                scoreCircle.classList.add('score-poor');
+                description = currentLanguage === 'zh' ? '较差，建议考虑换工作' : 'Poor, consider changing jobs';
+                recommendations = [
+                    { icon: '⚠️', text: currentLanguage === 'zh' ? '这份工作的价值较低，建议尽快寻找更好的机会' : 'This job has low value, consider finding better opportunities soon' },
+                    { icon: '🚀', text: currentLanguage === 'zh' ? '更新简历，积极投递新的工作' : 'Update your resume and actively apply for new jobs' },
+                    { icon: '🎓', text: currentLanguage === 'zh' ? '考虑提升技能或学历来增加竞争力' : 'Consider improving skills or education to increase competitiveness' }
+                ];
+            }
+            
+            scoreDescription.textContent = description;
+            
+            // 生成建议列表
+            recommendationsList.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <span class="recommendation-icon">${rec.icon}</span>
+                    <span>${rec.text}</span>
+                </div>
+            `).join('');
+            
+            // 显示结果区域
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 分享结果
+        function shareResults() {
+            const score = document.getElementById('scoreValue').textContent;
+            const country = document.getElementById('country').value;
+            const countryName = countries[country][currentLanguage];
+            
+            const shareText = currentLanguage === 'zh' 
+                ? `我的工作性价比分数是 ${score} 分！🎯 #这b班上得值不值 #工作价值计算器`
+                : `My job worth score is ${score}! 🎯 #IsThisJobWorthIt #JobWorthCalculator`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: currentLanguage === 'zh' ? '工作价值计算结果' : 'Job Worth Calculator Result',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                // 复制到剪贴板
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert(currentLanguage === 'zh' ? '结果已复制到剪贴板' : 'Result copied to clipboard');
+                });
+            }
+        }
+
+        // 下载报告
+        function downloadReport() {
+            const score = document.getElementById('scoreValue').textContent;
+            const salary = document.getElementById('salary').value;
+            const country = document.getElementById('country').value;
+            const countryName = countries[country][currentLanguage];
+            const workDays = document.getElementById('workDays').value;
+            const workHours = document.getElementById('workHours').value;
+            const commuteTime = document.getElementById('commuteTime').value;
+            const remoteWork = document.getElementById('remoteWork');
+            const remoteWorkText = remoteWork.options[remoteWork.selectedIndex].getAttribute(`data-${currentLanguage}`);
+            const cityTier = document.getElementById('cityTier');
+            const cityTierText = cityTier.options[cityTier.selectedIndex].getAttribute(`data-${currentLanguage}`);
+            const officeEnvironment = document.getElementById('officeEnvironment');
+            const officeEnvironmentText = officeEnvironment.options[officeEnvironment.selectedIndex].getAttribute(`data-${currentLanguage}`);
+            const teamRelationship = document.getElementById('teamRelationship');
+            const teamRelationshipText = teamRelationship.options[teamRelationship.selectedIndex].getAttribute(`data-${currentLanguage}`);
+            const workPressure = document.getElementById('workPressure');
+            const workPressureText = workPressure.options[workPressure.selectedIndex].getAttribute(`data-${currentLanguage}`);
+            const education = document.getElementById('education');
+            const educationText = education.options[education.selectedIndex].getAttribute(`data-${currentLanguage}`);
+            const experience = document.getElementById('experience').value;
+            const industryOutlook = document.getElementById('industryOutlook');
+            const industryOutlookText = industryOutlook.options[industryOutlook.selectedIndex].getAttribute(`data-${currentLanguage}`);
+            
+            const scoreClass = score >= 80 ? 'score-excellent' : score >= 60 ? 'score-good' : score >= 40 ? 'score-average' : 'score-poor';
+            const scoreText = score >= 80 ? (currentLanguage === 'zh' ? '优秀' : 'Excellent') : 
+                             score >= 60 ? (currentLanguage === 'zh' ? '良好' : 'Good') : 
+                             score >= 40 ? (currentLanguage === 'zh' ? '一般' : 'Average') : 
+                             (currentLanguage === 'zh' ? '较差' : 'Poor');
+            
+            const htmlContent = currentLanguage === 'zh' ? `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作价值计算报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .score-excellent { background: linear-gradient(135deg, #10b981, #059669); }
+        .score-good { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .score-average { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .score-poor { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+        
+        .recommendations {
+            background: #f0f9ff;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #0ea5e9;
+        }
+        
+        .recommendation-item {
+            display: flex;
+            align-items: start;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .recommendation-icon {
+            font-size: 1.5rem;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f9fafb;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .score-circle {
+                width: 150px;
+                height: 150px;
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 工作价值计算报告</h1>
+            <p>全面评估你的工作价值</p>
+        </div>
+        
+        <div class="content">
+            <div class="score-display">
+                <div class="score-circle ${scoreClass}">
+                    ${score}
+                </div>
+                <h2>工作性价比分数: ${scoreText}</h2>
+                <p>评估时间: ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <div class="section">
+                <h2>📊 基本信息</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">年薪</div>
+                        <div class="info-value">${salary} ${country === 'CN' ? '元' : 'USD'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">工作地点</div>
+                        <div class="info-value">${countryName}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">每周工作天数</div>
+                        <div class="info-value">${workDays} 天</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">每日工作时长</div>
+                        <div class="info-value">${workHours} 小时</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">单程通勤时间</div>
+                        <div class="info-value">${commuteTime} 分钟</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">远程工作选项</div>
+                        <div class="info-value">${remoteWorkText}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🏢 环境因素</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">工作城市等级</div>
+                        <div class="info-value">${cityTierText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">办公环境</div>
+                        <div class="info-value">${officeEnvironmentText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">团队关系</div>
+                        <div class="info-value">${teamRelationshipText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">工作压力</div>
+                        <div class="info-value">${workPressureText}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>👤 个人信息</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">最高学历</div>
+                        <div class="info-value">${educationText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">工作经验</div>
+                        <div class="info-value">${experience} 年</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">行业前景</div>
+                        <div class="info-value">${industryOutlookText}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recommendations">
+                <h2>💡 分析与建议</h2>
+                ${getDetailedRecommendations(score, 'zh')}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>报告生成自 Job Worth Calculator | ${new Date().toLocaleDateString()}</p>
+        </div>
+    </div>
+</body>
+</html>
+            ` : `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Worth Calculator Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .score-excellent { background: linear-gradient(135deg, #10b981, #059669); }
+        .score-good { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .score-average { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .score-poor { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+        
+        .recommendations {
+            background: #f0f9ff;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #0ea5e9;
+        }
+        
+        .recommendation-item {
+            display: flex;
+            align-items: start;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .recommendation-icon {
+            font-size: 1.5rem;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f9fafb;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .score-circle {
+                width: 150px;
+                height: 150px;
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Job Worth Calculator Report</h1>
+            <p>Comprehensive Job Value Evaluation</p>
+        </div>
+        
+        <div class="content">
+            <div class="score-display">
+                <div class="score-circle ${scoreClass}">
+                    ${score}
+                </div>
+                <h2>Job Worth Score: ${scoreText}</h2>
+                <p>Evaluation Date: ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <div class="section">
+                <h2>📊 Basic Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Annual Salary</div>
+                        <div class="info-value">${salary} ${country === 'CN' ? 'CNY' : 'USD'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Work Location</div>
+                        <div class="info-value">${countryName}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Working Days per Week</div>
+                        <div class="info-value">${workDays} days</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Daily Working Hours</div>
+                        <div class="info-value">${workHours} hours</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">One-way Commute</div>
+                        <div class="info-value">${commuteTime} minutes</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Remote Work Option</div>
+                        <div class="info-value">${remoteWorkText}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🏢 Environment Factors</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">City Tier</div>
+                        <div class="info-value">${cityTierText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Office Environment</div>
+                        <div class="info-value">${officeEnvironmentText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Team Relationship</div>
+                        <div class="info-value">${teamRelationshipText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Work Pressure</div>
+                        <div class="info-value">${workPressureText}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>👤 Personal Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Education Level</div>
+                        <div class="info-value">${educationText}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Work Experience</div>
+                        <div class="info-value">${experience} years</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Industry Outlook</div>
+                        <div class="info-value">${industryOutlookText}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recommendations">
+                <h2>💡 Analysis & Recommendations</h2>
+                ${getDetailedRecommendations(score, 'en')}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Report generated by Job Worth Calculator | ${new Date().toLocaleDateString()}</p>
+        </div>
+    </div>
+</body>
+</html>
+            `;
+            
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentLanguage === 'zh' ? '工作价值计算报告.html' : 'job-worth-report.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 获取详细建议
+        function getDetailedRecommendations(score, lang = 'zh') {
+            if (score >= 80) {
+                return lang === 'zh' ? `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🎉</span>
+                        <div>
+                            <strong>恭喜你找到了一份理想的工作！</strong><br>
+                            你的工作性价比很高，薪资待遇、工作环境和职业发展都很不错。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">💡</span>
+                        <div>
+                            <strong>继续保持工作生活平衡</strong><br>
+                            建议你继续保持良好的工作状态，同时注意身心健康，享受工作带来的成就感。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">📈</span>
+                        <div>
+                            <strong>长期发展规划</strong><br>
+                            考虑制定长期职业发展计划，争取更多成长机会和晋升空间。
+                        </div>
+                    </div>
+                ` : `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🎉</span>
+                        <div>
+                            <strong>Congratulations on finding an ideal job!</strong><br>
+                            Your job has excellent value with great compensation, environment, and career growth.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">💡</span>
+                        <div>
+                            <strong>Maintain work-life balance</strong><br>
+                            Continue maintaining a healthy work state while paying attention to physical and mental health.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">📈</span>
+                        <div>
+                            <strong>Long-term career planning</strong><br>
+                            Consider creating a long-term career development plan for more growth opportunities.
+                        </div>
+                    </div>
+                `;
+            } else if (score >= 60) {
+                return lang === 'zh' ? `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">👍</span>
+                        <div>
+                            <strong>这是一份不错的工作</strong><br>
+                            你的工作性价比良好，有一定的薪资待遇和发展空间。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🎯</span>
+                        <div>
+                            <strong>争取更好的待遇</strong><br>
+                            可以尝试与雇主协商加薪或改善工作条件，提升整体工作价值。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">⚖️</span>
+                        <div>
+                            <strong>关注工作压力</strong><br>
+                            注意保持健康的工作节奏，避免过度劳累影响工作效率和生活质量。
+                        </div>
+                    </div>
+                ` : `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">👍</span>
+                        <div>
+                            <strong>This is a decent job</strong><br>
+                            Your job has good value with decent compensation and room for growth.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🎯</span>
+                        <div>
+                            <strong>Negotiate for better compensation</strong><br>
+                            Consider negotiating with your employer for better salary or working conditions.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">⚖️</span>
+                        <div>
+                            <strong>Monitor work pressure</strong><br>
+                            Maintain a healthy work pace to avoid burnout affecting productivity and quality of life.
+                        </div>
+                    </div>
+                `;
+            } else if (score >= 40) {
+                return lang === 'zh' ? `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🤔</span>
+                        <div>
+                            <strong>工作价值有待提升</strong><br>
+                            当前工作的性价比一般，可能在薪资、工作环境或发展空间方面有改善空间。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">💰</span>
+                        <div>
+                            <strong>争取合理回报</strong><br>
+                            评估自己的市场价值，如果薪资偏低，可以要求加薪或寻找更高薪的工作机会。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🔍</span>
+                        <div>
+                            <strong>积极寻找新机会</strong><br>
+                            建议开始关注其他工作机会，为职业发展寻找更好的选择。
+                        </div>
+                    </div>
+                ` : `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🤔</span>
+                        <div>
+                            <strong>Job value needs improvement</strong><br>
+                            Your current job has average value, with room for improvement in compensation or environment.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">💰</span>
+                        <div>
+                            <strong>Seek fair compensation</strong><br>
+                            Evaluate your market value and request a raise if underpaid, or seek better opportunities.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🔍</span>
+                        <div>
+                            <strong>Explore new opportunities</strong><br>
+                            Start monitoring other job opportunities for better career development options.
+                        </div>
+                    </div>
+                `;
+            } else {
+                return lang === 'zh' ? `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">⚠️</span>
+                        <div>
+                            <strong>工作价值较低</strong><br>
+                            当前工作的性价比偏低，建议认真考虑是否需要更换工作。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🚀</span>
+                        <div>
+                            <strong>立即采取行动</strong><br>
+                            更新简历，积极投递新的工作，不要在低价值的工作上浪费时间。
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🎓</span>
+                        <div>
+                            <strong>提升个人竞争力</strong><br>
+                            考虑通过学习新技能或提升学历来增加自己的市场价值。
+                        </div>
+                    </div>
+                ` : `
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">⚠️</span>
+                        <div>
+                            <strong>Low job value</strong><br>
+                            Your current job has low value, seriously consider changing jobs.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🚀</span>
+                        <div>
+                            <strong>Take immediate action</strong><br>
+                            Update your resume and actively apply for new jobs, don't waste time on low-value work.
+                        </div>
+                    </div>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">🎓</span>
+                        <div>
+                            <strong>Improve your competitiveness</strong><br>
+                            Consider learning new skills or advancing your education to increase market value.
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 获取分数建议
+        function getScoreAdvice(score, lang = 'zh') {
+            if (score >= 80) {
+                return lang === 'zh' 
+                    ? '优秀！继续保持工作生活平衡，享受你的职业生涯。'
+                    : 'Excellent! Maintain work-life balance and enjoy your career.';
+            } else if (score >= 60) {
+                return lang === 'zh'
+                    ? '良好，可以尝试争取更好的薪资或工作条件。'
+                    : 'Good, consider negotiating for better salary or working conditions.';
+            } else if (score >= 40) {
+                return lang === 'zh'
+                    ? '一般，建议考虑其他职业机会。'
+                    : 'Average, consider other career opportunities.';
+            } else {
+                return lang === 'zh'
+                    ? '较差，建议尽快寻找更好的工作机会。'
+                    : 'Poor, consider finding better job opportunities soon.';
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
